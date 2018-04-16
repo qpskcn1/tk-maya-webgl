@@ -1,0 +1,33 @@
+# expected fields in the configuration file for this engine
+configuration:
+
+    template_work:
+        type: template
+        required_fields: []
+        optional_fields: "*"
+        description: "Template defining the output location of the work in shots file on the artist local file system."
+
+    template_publish:
+        type: template
+        required_fields: []
+        optional_fields: "*"
+        description: "Template defining the output location of the fbx files"
+# this app works on Maya engines
+# any host application specific commands
+supported_engines: "tk-maya"
+
+# the Shotgun fields that this engine needs in order to operate correctly
+requires_shotgun_fields:
+        
+# More verbose description of this item 
+display_name: "Lighting Setup Toolkit"
+description: "Lighting Setup Automation"
+
+# Required minimum versions for this item to run
+requires_shotgun_version:
+requires_core_version: "v0.14.28"
+requires_engine_version:
+
+# the frameworks required to run this app
+frameworks:
+    
