@@ -24,7 +24,7 @@ class BaseWebGLSetup(tank.platform.Application):
         """
         Called as the application is being initialized
         """
-        self.engine.register_command("Submit WebGL Review", self.run_app)
+        self.engine.register_command("Model Review", self.create_review)
 
     def destroy_app(self):
         """
@@ -32,21 +32,22 @@ class BaseWebGLSetup(tank.platform.Application):
         """
         self.log_debug("Destroying tk-maya-webgl app")
 
-    def run_app(self):
+    @property
+    def context_change_allowed(self):
         """
-        Start doing Webgl Publish
+        Specifies that context changes are allowed.
         """
-        try:
-            WebglPublishManager = self.get_webglpublish_manager()
-            WebglPublishManager.publish()
-        except:
-            traceback.print_exc()
+        return True
 
-    def get_webglpublish_manager(self):
+    def create_review(self):
         """
-        Create a singleton WebglPublishManager object to be used by any app.
+        Called from the gizmo when the review button is pressed.
+
+        :param group_node: The nuke node that was clicked.
         """
-        if self.WebglPublishManager is None:
-            tk_maya_webgl = self.import_module("tk_maya_webgl")
-            self.WebglPublishManager = tk_maya_webgl.webglPublishManager(self)
-        return self.WebglPublishManager
+        tk_maya_webgl = self.import_module("tk_maya_webgl")
+        self.engine.show_dialog(
+            "Model Review",
+            self,
+            tk_maya_webgl.Dialog
+        )
