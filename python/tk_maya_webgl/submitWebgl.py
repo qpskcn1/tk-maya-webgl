@@ -41,12 +41,12 @@ class webglPublishManager(object):
         cmds.select("MODEL")
         fbx_export_cmd = 'FBXExport -f "%s" -s' % (self.fbx_publish_path,)
         # ...and execute it:
-        # try:
-        #     self._app.log_debug("Executing command: %s" % fbx_export_cmd)
-        #     mel.eval(fbx_export_cmd)
-        # except Exception, e:
-        #     self._app.log_error("Failed to export camera: %s" % e)
-        #     return
+        try:
+            self._app.log_debug("Executing command: %s" % fbx_export_cmd)
+            mel.eval(fbx_export_cmd)
+        except Exception, e:
+            self._app.log_error("Failed to export camera: %s" % e)
+            return
         data = {'project': self._context.project,
                 'code': os.path.basename(self.fbx_publish_path),
                 'description': "WebGL Online Review",

@@ -170,7 +170,6 @@ class Thumbnail(QtGui.QLabel):
             QtCore.Qt.KeepAspectRatio,
             QtCore.Qt.SmoothTransformation
         )
-
         self.setPixmap(thumb)
 
 

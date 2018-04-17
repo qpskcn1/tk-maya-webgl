@@ -24,7 +24,24 @@ class BaseWebGLSetup(tank.platform.Application):
         """
         Called as the application is being initialized
         """
+        self.tk_maya_webgl = self.import_module("tk_maya_webgl")
+        self._base_hooks = self.tk_maya_webgl.base_hooks
         self.engine.register_command("Model Review", self.create_review)
+
+    @property
+    def base_hooks(self):
+        """
+        Exposes the ``base_hooks`` module.
+
+        This module provides base class implementations hooks.
+
+        Access to these classes won't typically be needed when writing hooks as
+        they are are injected into the class hierarchy automatically for any
+        collector or publish plugins configured.
+
+        :return: A handle on the app's ``base_hooks`` module.
+        """
+        return self._base_hooks
 
     def destroy_app(self):
         """
@@ -45,9 +62,8 @@ class BaseWebGLSetup(tank.platform.Application):
 
         :param group_node: The nuke node that was clicked.
         """
-        tk_maya_webgl = self.import_module("tk_maya_webgl")
         self.engine.show_dialog(
             "Model Review",
             self,
-            tk_maya_webgl.Dialog
+            self.tk_maya_webgl.Dialog
         )

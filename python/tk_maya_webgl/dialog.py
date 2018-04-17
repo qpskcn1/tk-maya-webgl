@@ -12,6 +12,8 @@ import os
 import sgtk
 import tempfile
 import datetime
+import maya.cmds as cmds
+import maya.mel as mel
 from sgtk.platform.qt import QtCore, QtGui
 
 from .ui.dialog import Ui_Dialog
@@ -37,16 +39,17 @@ class Dialog(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
 
         self._bundle = sgtk.platform.current_bundle()
-
         self._context = self._bundle.context
-        self._title = "test"
+        self._publish_path = self._generate_path()
+        self._title = os.path.basename(self._publish_path)
+        self._thumbnail = None
 
         self._task_manager = task_manager.BackgroundTaskManager(
             parent=self,
             start_processing=True,
             max_threads=2
         )
-
+        self._created_temp_files = []
         # set up data retriever
         self.__sg_data = sg_data.ShotgunDataRetriever(
             self,
@@ -66,6 +69,7 @@ class Dialog(QtGui.QWidget):
         self.ui.context_widget.restrict_entity_types_by_link("Version", "entity")
 
         self.ui.context_widget.context_changed.connect(self._on_context_change)
+        self.ui.item_thumbnail.screen_grabbed.connect(self._update_item_thumbnail)
 
         self._overlay = overlay.ShotgunOverlayWidget(self)
         self.ui.submit.clicked.connect(self._submit)
@@ -73,6 +77,22 @@ class Dialog(QtGui.QWidget):
 
         # set up basic UI
         self.ui.version_name.setText(self._title)
+
+    def __del__(self):
+        """
+        Destructor
+        """
+        # clean up temp files created
+        for temp_file in self._created_temp_files:
+            if os.path.exists(temp_file):
+                try:
+                    os.remove(temp_file)
+                except Exception, e:
+                    logger.warning(
+                        "Could not remove temporary file '%s': %s" % (temp_file, e)
+                    )
+                else:
+                    logger.debug("Removed temp file '%s'" % temp_file)
 
     def _format_timestamp(self, datetime_obj):
         """
@@ -113,15 +133,29 @@ class Dialog(QtGui.QWidget):
         event.accept()
 
     @sgtk.LogManager.log_timing
-    def _render(self, mov_path, start_frame, end_frame):
+    def _export(self, fbx_path):
         """
         Export fbx file
 
-        :param mov_path: temporary path where quicktime should be written
-        :param int start_frame: First frame to render
-        :param int end_frame: Last frame to render
+        :param fbx_path: temporary path where quicktime should be written
         """
-        pass
+        # keep track of everything currently selected. we will restore at the
+        # end of the publish method
+        cur_selection = cmds.ls(selection=True)
+
+        # make sure it is selected
+        cmds.select("MODEL")
+        fbx_export_cmd = 'FBXExport -f "%s" -s' % (fbx_path,)
+        # ...and execute it:
+        try:
+            self._bundle.log_debug("Executing command: %s" % fbx_export_cmd)
+            mel.eval(fbx_export_cmd)
+        except Exception, e:
+            self._bundle.log_error("Failed to export camera: %s" % e)
+            return
+
+        # restore selection
+        cmds.select(cur_selection)
 
     def _navigate_panel_and_close(self, panel_app, version_id):
         """
@@ -149,6 +183,15 @@ class Dialog(QtGui.QWidget):
         )
         QtGui.QDesktopServices.openUrl(QtCore.QUrl(url))
 
+    def _generate_path(self):
+        template_work = self._bundle.get_template("template_work")
+        template_publish = self._bundle.get_template("template_publish")
+        scene_name = cmds.file(query=True, sceneName=True)
+        fields = template_work.get_fields(scene_name)
+        publish_path = template_publish.apply_fields(fields)
+        publish_path = publish_path.replace("\\", "\\\\")
+        return publish_path
+
     def _on_context_change(self, context):
         """
         Called when user selects a new context
@@ -157,8 +200,16 @@ class Dialog(QtGui.QWidget):
         """
         logger.debug("Setting version context to %s" % context)
         self._context = context
-        self._title = self._generate_title()
+        self._publish_path = self._generate_path()
+        self._title = os.path.basename(self._publish_path)
         self.ui.version_name.setText(self._title)
+
+    def _update_item_thumbnail(self, pixmap):
+        """
+        Update the version of fbx file with the given
+        thumbnail pixmap
+        """
+        self._thumbnail = pixmap
 
     def _submit(self):
         """
@@ -178,17 +229,25 @@ class Dialog(QtGui.QWidget):
         :param shotgun: Shotgun API instance
         :param: parameter dictionary
         """
-        logger.debug("Uploading movie to Shotgun...")
+        logger.debug("Uploading fbx to Shotgun...")
         try:
-            shotgun.upload(
-                "Version",
-                data["version_id"],
-                data["file_name"],
-                "sg_uploaded_movie"
-            )
+            # shotgun.upload(
+            #     "Version",
+            #     data["version_id"],
+            #     data["file_name"],
+            #     "sg_uploaded_movie"
+            # )
+            self._thumbnail_path = self._get_thumbnail_as_path()
+            if self._thumbnail_path:
+                shotgun.upload_thumbnail(
+                    "Version",
+                    data["version_id"],
+                    self._thumbnail_path
+                )
             logger.debug("...Upload complete!")
-        finally:
-            sgtk.util.filesystem.safe_delete_file(data["file_name"])
+        except Exception as e:
+            logger.error(e)
+        pass
 
     def _run_submission(self):
         """
@@ -199,19 +258,18 @@ class Dialog(QtGui.QWidget):
         if isinstance(version_name, unicode):
             version_name = version_name.encode("utf-8")
 
-        description = self.ui.description.toPlainText()
+        description = self.ui.item_comments.toPlainText()
         if isinstance(description, unicode):
             description = description.encode("utf-8")
 
-        # set metadata
-        self._setup_formatting(version_name)
-
         # generate temp file for mov sequence
-        mov_path = os.path.join(tempfile.gettempdir(), "quickreview.mov")
-        mov_path = sgtk.util.filesystem.get_unused_path(mov_path)
+        fbx_path = self._generate_path()
+        # ensure the publish folder exists:
+        publish_folder = os.path.dirname(fbx_path)
+        self._bundle.ensure_folder_exists(publish_folder)
 
         # and render!
-        self._render(mov_path, start_frame, end_frame)
+        self._export(fbx_path)
 
         # create sg version
         data = {
@@ -220,20 +278,10 @@ class Dialog(QtGui.QWidget):
             "project": self._context.project,
             "entity": self._context.entity,
             "sg_task": self._context.task,
+            'sg_path_to_movie': fbx_path,
             "created_by": sgtk.util.get_current_user(self._bundle.sgtk),
             "user": sgtk.util.get_current_user(self._bundle.sgtk),
-            "sg_first_frame": start_frame,
-            "sg_last_frame": end_frame,
-            "frame_count": end_frame - start_frame + 1,
-            "frame_range": "%d-%d" % (start_frame, end_frame),
-            "sg_movie_has_slate": True
         }
-
-        if self.ui.playlists.itemData(self.ui.playlists.currentIndex()) != 0:
-            data["playlists"] = [{
-                "type": "Playlist",
-                "id": self.ui.playlists.itemData(self.ui.playlists.currentIndex())
-            }]
 
         # call pre-hook
         data = self._bundle.execute_hook_method(
@@ -255,10 +303,44 @@ class Dialog(QtGui.QWidget):
             base_class=self._bundle.base_hooks.ReviewEvents
         )
 
-        data = {"version_id": entity["id"], "file_name": mov_path}
+        data = {"version_id": entity["id"], "file_name": fbx_path}
         self.__sg_data.execute_method(self._upload_to_shotgun, data)
 
         return entity["id"]
+
+    def _get_thumbnail_as_path(self):
+        """
+        Helper method. Writes the associated thumbnail to a temp file
+        on disk and returns the path. This path is automatically deleted
+        when the object goes out of scope.
+
+        :returns: Path to a file on disk or None if no thumbnail set
+        """
+        if self._thumbnail is None:
+            return None
+
+        temp_path = tempfile.NamedTemporaryFile(
+            suffix=".jpg",
+            prefix="sgtk_thumb",
+            delete=False
+        ).name
+        success = self._thumbnail.save(temp_path)
+
+        if success:
+            if os.path.getsize(temp_path) > 0:
+                self._created_temp_files.append(temp_path)
+            else:
+                logger.debug(
+                    "A zero-size thumbnail was written for %s, "
+                    "no thumbnail will be uploaded." % self._title
+                )
+                return None
+            return temp_path
+        else:
+            logger.warning(
+                "Thumbnail save to disk failed. No thumbnail will be uploaded for %s." % self._title
+            )
+            return None
 
     def __on_worker_failure(self, uid, msg):
         """

@@ -1,6 +1,12 @@
 # expected fields in the configuration file for this engine
 configuration:
 
+    events_hook:
+        type: hook
+        description: Hook for adding extra logic and
+                     customization during the different submission stages.
+        default_value: '{self}/events.py'
+
     template_work:
         type: template
         required_fields: []
@@ -25,8 +31,8 @@ description: "Lighting Setup Automation"
 
 # Required minimum versions for this item to run
 requires_shotgun_version:
-requires_core_version: "v0.14.28"
-requires_engine_version:
+requires_core_version: "v0.18.124"
+requires_engine_version: "v0.2.3"
 
 # the frameworks required to run this app
 frameworks:
