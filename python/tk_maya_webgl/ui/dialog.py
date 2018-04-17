@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'dialog.ui'
 #
-# Created: Tue Apr 17 10:36:08 2018
+# Created: Tue Apr 17 11:28:39 2018
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,7 +12,7 @@ from tank.platform.qt import QtCore, QtGui
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(495, 350)
+        Dialog.resize(385, 288)
         self.verticalLayout_2 = QtGui.QVBoxLayout(Dialog)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.stack_widget = QtGui.QStackedWidget(Dialog)
@@ -27,31 +27,38 @@ class Ui_Dialog(object):
         self.version_name_label.setObjectName("version_name_label")
         self.horizontalLayout.addWidget(self.version_name_label)
         self.version_name = QtGui.QLineEdit(self.page)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.version_name.sizePolicy().hasHeightForWidth())
+        self.version_name.setSizePolicy(sizePolicy)
         self.version_name.setObjectName("version_name")
         self.horizontalLayout.addWidget(self.version_name)
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.context_widget = ContextWidget(self.page)
         self.context_widget.setObjectName("context_widget")
         self.verticalLayout.addWidget(self.context_widget)
-        self.spacer_label = QtGui.QLabel(self.page)
-        self.spacer_label.setText("")
-        self.spacer_label.setObjectName("spacer_label")
-        self.verticalLayout.addWidget(self.spacer_label)
         self.gridLayout_2 = QtGui.QGridLayout()
         self.gridLayout_2.setObjectName("gridLayout_2")
         self.label = QtGui.QLabel(self.page)
         self.label.setObjectName("label")
         self.gridLayout_2.addWidget(self.label, 0, 0, 1, 1)
-        self.description = QtGui.QTextEdit(self.page)
-        self.description.setObjectName("description")
-        self.gridLayout_2.addWidget(self.description, 1, 0, 1, 1)
+        self.item_comments = PublishDescriptionEdit(self.page)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.item_comments.sizePolicy().hasHeightForWidth())
+        self.item_comments.setSizePolicy(sizePolicy)
+        self.item_comments.setMinimumSize(QtCore.QSize(0, 90))
+        self.item_comments.setMaximumSize(QtCore.QSize(16777215, 90))
+        self.item_comments.setObjectName("item_comments")
+        self.gridLayout_2.addWidget(self.item_comments, 1, 0, 1, 1)
         self.label_2 = QtGui.QLabel(self.page)
         self.label_2.setObjectName("label_2")
         self.gridLayout_2.addWidget(self.label_2, 0, 1, 1, 1)
         self.item_thumbnail = Thumbnail(self.page)
-        self.item_thumbnail.setGeometry(QtCore.QRect(0, 0, 200, 120))
-        self.item_thumbnail.setMinimumSize(QtCore.QSize(200, 120))
-        self.item_thumbnail.setMaximumSize(QtCore.QSize(200, 120))
+        self.item_thumbnail.setMinimumSize(QtCore.QSize(160, 90))
+        self.item_thumbnail.setMaximumSize(QtCore.QSize(160, 90))
         self.item_thumbnail.setText("")
         self.item_thumbnail.setScaledContents(False)
         self.item_thumbnail.setAlignment(QtCore.Qt.AlignCenter)
@@ -73,7 +80,7 @@ class Ui_Dialog(object):
         self.label_6.setMinimumSize(QtCore.QSize(100, 100))
         self.label_6.setMaximumSize(QtCore.QSize(100, 100))
         self.label_6.setText("")
-        self.label_6.setPixmap(QtGui.QPixmap(":/tk_nuke_quickreview/complete.png"))
+        self.label_6.setPixmap(QtGui.QPixmap(":/tk_maya_webgl/complete.png"))
         self.label_6.setScaledContents(True)
         self.label_6.setObjectName("label_6")
         self.horizontalLayout_3.addWidget(self.label_6)
@@ -108,7 +115,7 @@ class Ui_Dialog(object):
         self.verticalLayout_2.addWidget(self.line)
         self.horizontalLayout_2 = QtGui.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        spacerItem6 = QtGui.QSpacerItem(148, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        spacerItem6 = QtGui.QSpacerItem(120, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_2.addItem(spacerItem6)
         self.cancel = QtGui.QPushButton(Dialog)
         self.cancel.setObjectName("cancel")
@@ -137,5 +144,5 @@ class Ui_Dialog(object):
         self.cancel.setText(QtGui.QApplication.translate("Dialog", "Cancel", None, QtGui.QApplication.UnicodeUTF8))
         self.submit.setText(QtGui.QApplication.translate("Dialog", "Upload to Shotgun", None, QtGui.QApplication.UnicodeUTF8))
 
-from ..qtwidgets import ContextWidget, Thumbnail
+from ..qtwidgets import ContextWidget, Thumbnail, PublishDescriptionEdit
 from . import resources_rc

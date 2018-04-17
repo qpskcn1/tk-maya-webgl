@@ -1,5 +1,5 @@
 <RCC>
-  <qresource prefix="tk_nuke_quickreview">
+  <qresource prefix="tk_maya_webgl">
     <file>complete.png</file>
     <file>camera.png</file>
   </qresource>
