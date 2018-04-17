@@ -3,6 +3,8 @@ import pymel.core as pm
 import maya.cmds as cmds
 import maya.mel as mel
 
+from .dialog import SubmitWebGLDialog
+
 class webglPublishManager(object):
 
     def __init__(self, app, context=None):
@@ -12,18 +14,25 @@ class webglPublishManager(object):
         self._app = app
         self.sg = self._app.sgtk.shotgun
         self._context = context if context else self._app.context
-
-    def publish(self):
-        # keep track of everything currently selected. we will restore at the
-        # end of the publish method
-        cur_selection = cmds.ls(selection=True)
-
         template_work = self._app.get_template("template_work")
         template_publish = self._app.get_template("template_publish")
         scene_name = pm.sceneName()
         fields = template_work.get_fields(scene_name)
         self.fbx_publish_path = template_publish.apply_fields(fields)
         self.fbx_publish_path = self.fbx_publish_path.replace("\\", "\\\\")
+
+    def show_dialog(self):
+        try:
+            self._app.engine.show_dialog("Model Review %s" % self._app.version,
+                                         self._app, SubmitWebGLDialog, self._app, self)
+        except Exception as e:
+            self._app.log_error(e)
+
+    def publish(self):
+        # keep track of everything currently selected. we will restore at the
+        # end of the publish method
+        cur_selection = cmds.ls(selection=True)
+
         # ensure the publish folder exists:
         publish_folder = os.path.dirname(self.fbx_publish_path)
         self._app.ensure_folder_exists(publish_folder)

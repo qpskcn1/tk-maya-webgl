@@ -1,1 +1,1 @@
-from .submitWebgl import webglPublishManager
+from .dialog import Dialog

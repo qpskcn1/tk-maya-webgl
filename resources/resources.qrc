@@ -1,5 +1,6 @@
 <RCC>
-  <qresource prefix="res">
-    <file>base_logo.png</file>
+  <qresource prefix="tk_nuke_quickreview">
+    <file>complete.png</file>
+    <file>camera.png</file>
   </qresource>
 </RCC>
