@@ -1,0 +1,9 @@
+/* Use open sans font across the app if core supports it */
+QWidget {
+    font-family: Open Sans;
+    font-style: Regular;
+}
+/* thumbnail background */
+#item_thumbnail {
+    background-color: #292929;
+}

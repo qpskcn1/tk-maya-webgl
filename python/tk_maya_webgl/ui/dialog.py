@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'dialog.ui'
 #
-# Created: Tue Apr 17 15:21:08 2018
+# Created: Wed Apr 18 11:04:05 2018
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -142,7 +142,7 @@ class Ui_Dialog(object):
         self.jump_to_shotgun.setText(QtGui.QApplication.translate("Dialog", "Show in Shotgun", None, QtGui.QApplication.UnicodeUTF8))
         self.jump_to_panel.setText(QtGui.QApplication.translate("Dialog", "Show in Panel", None, QtGui.QApplication.UnicodeUTF8))
         self.cancel.setText(QtGui.QApplication.translate("Dialog", "Cancel", None, QtGui.QApplication.UnicodeUTF8))
-        self.submit.setText(QtGui.QApplication.translate("Dialog", "Upload to Shotgun", None, QtGui.QApplication.UnicodeUTF8))
+        self.submit.setText(QtGui.QApplication.translate("Dialog", "Submit to Shotgun", None, QtGui.QApplication.UnicodeUTF8))
 
 from ..qtwidgets import ContextWidget, Thumbnail, PublishDescriptionEdit
 from . import resources_rc

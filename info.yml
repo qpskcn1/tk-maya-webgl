@@ -18,6 +18,7 @@ configuration:
         required_fields: []
         optional_fields: "*"
         description: "Template defining the output location of the fbx files"
+
 # this app works on Maya engines
 # any host application specific commands
 supported_engines: "tk-maya"
@@ -26,8 +27,8 @@ supported_engines: "tk-maya"
 requires_shotgun_fields:
         
 # More verbose description of this item 
-display_name: "Lighting Setup Toolkit"
-description: "Lighting Setup Automation"
+display_name: "Maya Model Review"
+description: "Submit fbx file to Shotgun for webgl review"
 
 # Required minimum versions for this item to run
 requires_shotgun_version:

@@ -290,7 +290,7 @@
      <item>
       <widget class="QPushButton" name="submit">
        <property name="text">
-        <string>Upload to Shotgun</string>
+        <string>Submit to Shotgun</string>
        </property>
       </widget>
      </item>

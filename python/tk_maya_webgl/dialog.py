@@ -1,11 +1,11 @@
 # Copyright (c) 2017 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import os
@@ -20,9 +20,13 @@ from .ui.dialog import Ui_Dialog
 
 logger = sgtk.platform.get_logger(__name__)
 
-overlay = sgtk.platform.import_framework("tk-framework-qtwidgets", "overlay_widget")
-sg_data = sgtk.platform.import_framework("tk-framework-shotgunutils", "shotgun_data")
-task_manager = sgtk.platform.import_framework("tk-framework-shotgunutils", "task_manager")
+overlay = sgtk.platform.import_framework("tk-framework-qtwidgets",
+                                         "overlay_widget")
+sg_data = sgtk.platform.import_framework("tk-framework-shotgunutils",
+                                         "shotgun_data")
+task_manager = sgtk.platform.import_framework("tk-framework-shotgunutils",
+                                              "task_manager")
+MODEL_NAME = "MODEL"
 
 
 class Dialog(QtGui.QWidget):
@@ -66,7 +70,8 @@ class Dialog(QtGui.QWidget):
         self.ui.context_widget.set_up(self._task_manager)
         self.ui.context_widget.set_context(self._context)
         self.ui.context_widget.context_label.hide()
-        self.ui.context_widget.restrict_entity_types_by_link("Version", "entity")
+        self.ui.context_widget.restrict_entity_types_by_link("Version",
+                                                             "entity")
 
         self.ui.context_widget.context_changed.connect(self._on_context_change)
         self.ui.item_thumbnail.screen_grabbed.connect(self._update_item_thumbnail)
@@ -87,36 +92,14 @@ class Dialog(QtGui.QWidget):
             if os.path.exists(temp_file):
                 try:
                     os.remove(temp_file)
+                    logger.debug("Removed temp file '%s'" % temp_file)
                 except Exception, e:
                     logger.warning(
-                        "Could not remove temporary file '%s': %s" % (temp_file, e)
+                        "Could not remove temporary file '%s':%s"
+                        % (temp_file, e)
                     )
                 else:
                     logger.debug("Removed temp file '%s'" % temp_file)
-
-    def _format_timestamp(self, datetime_obj):
-        """
-        Formats the given datetime object in a short human readable form.
-
-        :param datetime_obj: Datetime obj to format
-        :returns: date str
-        """
-        from tank_vendor.shotgun_api3.lib.sgtimezone import LocalTimezone
-        datetime_now = datetime.datetime.now(LocalTimezone())
-
-        datetime_tomorrow = datetime_now + datetime.timedelta(hours=24)
-
-        if datetime_obj.date() == datetime_now.date():
-            # today - display timestamp - Today 01:37AM
-            return datetime_obj.strftime("Today %I:%M%p")
-
-        elif datetime_obj.date() == datetime_tomorrow.date():
-            # tomorrow - display timestamp - Tomorrow 01:37AM
-            return datetime_obj.strftime("Tomorrow %I:%M%p")
-
-        else:
-            # 24 June 01:37AM
-            return datetime_obj.strftime("%d %b %I:%M%p")
 
     def closeEvent(self, event):
         """
@@ -144,7 +127,7 @@ class Dialog(QtGui.QWidget):
         cur_selection = cmds.ls(selection=True)
 
         # make sure it is selected
-        cmds.select("MODEL")
+        cmds.select(MODEL_NAME)
         fbx_export_cmd = 'FBXExport -f "%s" -s' % (fbx_path,)
         # ...and execute it:
         try:
@@ -229,7 +212,7 @@ class Dialog(QtGui.QWidget):
         :param shotgun: Shotgun API instance
         :param: parameter dictionary
         """
-        logger.debug("Uploading fbx to Shotgun...")
+        logger.debug("Uploading thumbnail to Shotgun...")
         try:
             # shotgun.upload(
             #     "Version",
@@ -261,7 +244,9 @@ class Dialog(QtGui.QWidget):
         description = self.ui.item_comments.toPlainText()
         if isinstance(description, unicode):
             description = description.encode("utf-8")
-
+        # 24 June 01:37AM
+        description += "\n%s" % \
+                       datetime.datetime.now().strftime("%d %b %I:%M%p")
         # generate temp file for mov sequence
         fbx_path = self._generate_path()
         # ensure the publish folder exists:
@@ -279,8 +264,6 @@ class Dialog(QtGui.QWidget):
             "entity": self._context.entity,
             "sg_task": self._context.task,
             'sg_path_to_movie': fbx_path,
-            "created_by": sgtk.util.get_current_user(self._bundle.sgtk),
-            "user": sgtk.util.get_current_user(self._bundle.sgtk),
         }
 
         # call pre-hook
@@ -292,7 +275,19 @@ class Dialog(QtGui.QWidget):
         )
 
         # create in shotgun
-        entity = self._bundle.shotgun.create("Version", data)
+        # check if a version entity with same code exists in shotgun
+        # if none, create a new version Entity with qtfile name as its code
+        entity = None
+        version = self._bundle.shotgun.find_one("Version",
+                                                [["code", "is", data["code"]]])
+        if version:
+            logger.debug("Version already exist, updating")
+            entity = self._bundle.shotgun.update('Version',
+                                                 version["id"], data)
+        else:
+            logger.debug("Create a new Version as %s" % data["code"])
+            entity = self._bundle.shotgun.create('Version', data)
+
         logger.debug("Version created in Shotgun %s" % entity)
 
         # call post hook
@@ -338,7 +333,8 @@ class Dialog(QtGui.QWidget):
             return temp_path
         else:
             logger.warning(
-                "Thumbnail save to disk failed. No thumbnail will be uploaded for %s." % self._title
+                "Thumbnail save to disk failed. \
+                No thumbnail will be uploaded for %s." % self._title
             )
             return None
 

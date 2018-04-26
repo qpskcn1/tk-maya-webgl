@@ -1,11 +1,11 @@
 # Copyright (c) 2017 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
@@ -17,10 +17,12 @@ import sgtk
 from sgtk.platform.qt import QtCore, QtGui
 
 
-context_selector = sgtk.platform.import_framework("tk-framework-qtwidgets", "context_selector")
+context_selector = sgtk.platform.import_framework("tk-framework-qtwidgets",
+                                                  "context_selector")
 ContextWidget = context_selector.ContextWidget
 
-screen_grab = sgtk.platform.import_framework("tk-framework-qtwidgets", "screen_grab")
+screen_grab = sgtk.platform.import_framework("tk-framework-qtwidgets",
+                                             "screen_grab")
 
 logger = sgtk.platform.get_logger(__name__)
 
@@ -45,7 +47,8 @@ class Thumbnail(QtGui.QLabel):
         """
         QtGui.QLabel.__init__(self, parent)
 
-        #_multiple_values allows to display indicator that the summary thumbnail is not applied to all items
+        # _multiple_values allows to display indicator that the summary
+        # thumbnail is not applied to all items
         self._multiple_values = False
 
         self._thumbnail = None
@@ -55,7 +58,7 @@ class Thumbnail(QtGui.QLabel):
         self.setCursor(QtCore.Qt.PointingHandCursor)
         self._no_thumb_pixmap = QtGui.QPixmap(":/tk_maya_webgl/camera.png")
         self._do_screengrab.connect(self._on_screengrab)
-        self.set_thumbnail(self._no_thumb_pixmap)       
+        self.set_thumbnail(self._no_thumb_pixmap)
 
     def setEnabled(self, enabled):
         """
@@ -141,18 +144,22 @@ class Thumbnail(QtGui.QLabel):
         Paint Event override
         """
         # paint multiple values indicator
-        if self._multiple_values == True:
+        if self._multiple_values:
             p = QtGui.QPainter(self)
-            p.drawPixmap(0,0,self.width(),self.height(),self._no_thumb_pixmap,0,0,self._no_thumb_pixmap.width(),self._no_thumb_pixmap.height())
-            p.fillRect(0,0,self.width(),self.height(),QtGui.QColor(42,42,42,237))
+            p.drawPixmap(0, 0, self.width(), self.height(),
+                         self._no_thumb_pixmap,
+                         0, 0, self._no_thumb_pixmap.width(),
+                         self._no_thumb_pixmap.height())
+            p.fillRect(0, 0, self.width(), self.height(),
+                       QtGui.QColor(42, 42, 42, 237))
             p.setFont(QtGui.QFont("Arial", 15, QtGui.QFont.Bold))
             pen = QtGui.QPen(QtGui.QColor("#18A7E3"))
             p.setPen(pen)
-            p.drawText(self.rect(), QtCore.Qt.AlignCenter,"Multiple Values")
+            p.drawText(self.rect(), QtCore.Qt.AlignCenter, "Multiple Values")
 
         else:
-           # paint thumbnail
-           QtGui.QLabel.paintEvent(self, paint_event)
+            # paint thumbnail
+            QtGui.QLabel.paintEvent(self, paint_event)
 
     def _set_screenshot_pixmap(self, pixmap):
         """
@@ -170,6 +177,7 @@ class Thumbnail(QtGui.QLabel):
             QtCore.Qt.KeepAspectRatio,
             QtCore.Qt.SmoothTransformation
         )
+        logger.debug("width: %s, height: %s" % (self.width(), self.height()))
         self.setPixmap(thumb)
 
 
@@ -188,25 +196,30 @@ class PublishDescriptionEdit(QtGui.QPlainTextEdit):
 
         self._show_placeholder = False
 
-        # this is the placeholder text to be displayed in the bottom right corner of the widget. The spaces afterwards were added so that the 
-        # placeholder text won't be hidden behind the scroll bar that is automatically added when the text is too long 
+        # this is the placeholder text to be displayed in the bottom right
+        # corner of the widget. The spaces afterwards were added so that the
+        # placeholder text won't be hidden behind the scroll bar that is
+        # automatically added when the text is too long
         self._placeholder_text = "<multiple values>"
 
     def paintEvent(self, paint_event):
-       """
-       Paints the line plain text editor and adds a placeholder on bottom right corner when multiple values are detected.
-       """
- 
-       # If the box does not have focus, draw <multiple values> placeholder when self._show_placeholder is true, even if the widget has text
-       if not self.hasFocus() and self._show_placeholder == True:
-           p = QtGui.QPainter(self.viewport())
+        """
+        Paints the line plain text editor and adds a placeholder on bottom
+        right corner when multiple values are detected.
+        """
 
-           # right placeholder note in blue
-           col = QtGui.QColor(24,167,227) # blue
-           p.setPen(QtGui.QPen(col))
-           p.setBrush(QtGui.QBrush(col))
+        # If the box does not have focus, draw <multiple values> placeholder
+        # when self._show_placeholder is true, even if the widget has text
+        if not self.hasFocus() and self._show_placeholder:
+            p = QtGui.QPainter(self.viewport())
 
-           p.drawText(self.rect(),QtCore.Qt.AlignTop | QtCore.Qt.AlignLeft, self._placeholder_text)
- 
-       else:
-           QtGui.QPlainTextEdit.paintEvent(self, paint_event)
+            # right placeholder note in blue
+            col = QtGui.QColor(24, 167, 227)  # blue
+            p.setPen(QtGui.QPen(col))
+            p.setBrush(QtGui.QBrush(col))
+
+            p.drawText(self.rect(), QtCore.Qt.AlignTop | QtCore.Qt.AlignLeft,
+                       self._placeholder_text)
+
+        else:
+            QtGui.QPlainTextEdit.paintEvent(self, paint_event)
